@@ -1,0 +1,21 @@
+# Secrets and local config
+config.env
+*.json
+!config.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Exports
+exports/
+
+# OS
+*.DS_Store
+
+# IDE
+.idea/
+.vscode/

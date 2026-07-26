@@ -1,0 +1,2 @@
+requests>=2.31.0
+datadog-api-client>=2.25.0
