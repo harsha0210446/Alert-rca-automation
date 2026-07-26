@@ -1,2 +1,4 @@
 requests>=2.31.0
 datadog-api-client>=2.25.0
+google-auth>=2.29.0
+google-auth-oauthlib>=1.2.0

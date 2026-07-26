@@ -22,28 +22,32 @@ Read `alert-rca-automation/config.env` for:
 If config.env missing: say "Copy config.env.example to config.env and fill in credentials." and stop.
 
 ### 3. Format Google Chat message
-Build a concise message from the alert file:
+Post the FULL RCA, not a summary — the Chat message is the complete record, nobody
+should need to open the local alert file:
 
 ```
 🔍 RCA — {monitor_name}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⏰ Triggered: {triggered_at}
 📦 Service: {service} | Env: {env}
-🎯 Root cause: {one-line from RCA}
-
-📊 Evidence:
-   • {bullet 1 from Evidence section}
-   • {bullet 2}
-   • {bullet 3 max}
-
-✅ Suggested action:
-   {first suggested fix item}
-
 🎚 Confidence: {confidence}
-📄 Full report: alerts/{alert_id}.md
+
+🎯 Root Cause Analysis
+{full Root Cause Analysis section — What fired / When / Root cause / Confidence}
+
+📊 Evidence
+{full Evidence section — log counts, top errors, traces, deploy events, code context}
+
+✅ Suggested Fix
+{full Suggested Fix section}
+
+📄 alert_id: {alert_id}
 ```
 
-Keep under 4096 characters (Google Chat limit). Truncate evidence bullets if needed.
+Google Chat caps messages at 4096 characters. If it doesn't fit: drop the code
+snippet from Evidence first (leave a note pointing to the alert file for it),
+then hard-truncate as a last resort. See `format_chat_message()` in
+`scripts/utils.py` for the exact logic.
 
 ### 4. Publish to Google Chat
 Run:

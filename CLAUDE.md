@@ -5,8 +5,8 @@ Solo automation project for investigating Datadog monitor alerts and publishing 
 Claude Code slash commands in `.claude/commands/` handle fetching alerts, RCA investigation, publishing, and summarising.
 
 ## Alert Sources
-- **Primary**: Datadog monitors in `Alert` or `Warn` state (polled via `/fetch-alerts` or Datadog webhook)
-- **Secondary**: Google Chat messages forwarded to the webhook server (parsed from Datadog notification format)
+- **Primary**: Datadog monitors in `Alert` or `Warn` state, scoped to the `rio` team (polled via `/fetch-alerts`)
+- **Secondary**: Google Chat messages pasted in manually via `/create-alert-from-chat` (parsed from Datadog notification format)
 
 ## Alert ID Convention
 Format: `DD-{monitor_id}-{epoch}` or `DD-{monitor_id}` for recurring alerts on same monitor.
@@ -38,10 +38,10 @@ java.lang.SomeException: message
 | File | Purpose | Who writes |
 |------|---------|------------|
 | `_mappings.md` | Monitor filters & Datadog query config | You (manually) |
-| `_processed_alerts.md` | Alert → status, timestamps | Auto (fetch-alerts / webhook) |
+| `_processed_alerts.md` | Alert → status, timestamps | Auto (fetch-alerts / analyse-alert / publish-rca) |
 | `alerts/{ID}.md` | Per-alert detail + RCA | Auto |
 | `_summary.md` | Aggregated view | Auto (/summarise) |
-| `config.env` | Webhook URLs, API keys (gitignored) | You (manually) |
+| `config.env` | Datadog token, Google Chat webhook URL (gitignored) | You (manually) |
 
 ## RCA Output Convention
 Every analysed alert must have these sections filled:

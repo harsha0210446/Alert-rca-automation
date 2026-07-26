@@ -4,15 +4,26 @@ Edit this file to configure which alerts to fetch and investigate.
 
 ## Datadog Monitor Query
 
-Default query for `/fetch-alerts` and `fetch_datadog_alerts.py`:
+Default query for `/fetch-alerts` and `fetch_datadog_alerts.py` — scoped to the **rio team only**
+(the team whose monitor notifications post to our Google Chat space):
 ```
-status:alert OR status:warn
+(status:alert OR status:warn) AND team:rio
 ```
 
-Add service/env filters as needed, e.g.:
+Confirmed via the Datadog monitor tags (`team:rio`) — other teams (scm-wms, scm-mp, transact,
+cpc, dataplatform, tc-lab, tc-reporting, etc.) exist in the org but are out of scope for this
+automation. Verified (2026-07-26) that rio-team monitors currently in Alert/Warn notify one of
+two Google Chat handles configured on the monitor message: `@googlechat-P0-service-alerts` or
+`@googlechat-RIO-DD-Alerts` — that's the **source** space Datadog posts raw alerts to.
+
+RCAs are published to a **different** space, `P0-datadog-rca-alerts` (2026-07-27 —
+`GOOGLE_CHAT_WEBHOOK_URL` in `config.env` now points there instead of back into the
+source-alert space), so RCA output stays separate from the raw alert feed.
+
+Other filter examples, if scope ever needs to change:
 ```
-(status:alert OR status:warn) AND service:inward-edge
-(status:alert OR status:warn) AND env:prod
+(status:alert OR status:warn) AND team:rio AND service:inward-edge
+(status:alert OR status:warn) AND team:rio AND env:prod
 ```
 
 You can also set `DD_MONITOR_QUERY` in `config.env` to override this.

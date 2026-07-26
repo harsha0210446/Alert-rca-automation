@@ -247,58 +247,42 @@ _Pending RCA_
 
 
 def format_chat_message(fm: AlertFrontmatter, body: str) -> str:
-    """Format RCA for Google Chat."""
-    rca = extract_section(body, "Root Cause Analysis")
-    evidence = extract_section(body, "Evidence")
-    fix = extract_section(body, "Suggested Fix")
+    """Format the FULL RCA for Google Chat — no summarizing, so the space is the
+    complete record and nobody needs to open the local alert file."""
+    rca = extract_section(body, "Root Cause Analysis").strip()
+    evidence = extract_section(body, "Evidence").strip()
+    fix = extract_section(body, "Suggested Fix").strip()
 
-    root_cause_line = ""
-    for line in rca.splitlines():
-        stripped = line.strip()
-        if stripped and not stripped.startswith("#") and "**" not in stripped[:20]:
-            root_cause_line = stripped.lstrip("- ").strip()
-            break
-        if "Root cause" in stripped.lower():
-            root_cause_line = stripped.split(":", 1)[-1].strip()
-            break
-    if not root_cause_line:
-        root_cause_line = rca.splitlines()[0].strip() if rca else "See full report"
+    header = (
+        f"🔍 RCA — {fm.monitor_name}\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"⏰ Triggered: {fm.triggered_at}\n"
+        f"📦 Service: {fm.service} | Env: {fm.env}\n"
+        f"🎚 Confidence: {fm.confidence or 'N/A'}\n"
+    )
+    footer = f"\n📄 alert_id: {fm.alert_id}"
 
-    evidence_bullets = []
-    for line in evidence.splitlines():
-        stripped = line.strip().lstrip("-•").strip()
-        if stripped and not stripped.startswith("_"):
-            evidence_bullets.append(stripped)
-            if len(evidence_bullets) >= 3:
-                break
+    def build(evidence_text: str) -> str:
+        sections = []
+        if rca:
+            sections.append(f"🎯 Root Cause Analysis\n{rca}")
+        if evidence_text:
+            sections.append(f"📊 Evidence\n{evidence_text}")
+        if fix:
+            sections.append(f"✅ Suggested Fix\n{fix}")
+        return header + "\n" + "\n\n".join(sections) + footer
 
-    fix_line = ""
-    for line in fix.splitlines():
-        stripped = line.strip().lstrip("-•").strip()
-        if stripped and not stripped.startswith("_"):
-            fix_line = stripped
-            break
+    msg = build(evidence)
+    if len(msg) <= 4096:
+        return msg
 
-    msg = f"""🔍 RCA — {fm.monitor_name}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⏰ Triggered: {fm.triggered_at}
-📦 Service: {fm.service} | Env: {fm.env}
-🎯 Root cause: {root_cause_line}
+    # Over Google Chat's 4096 limit — drop the verbose code snippet from Evidence first.
+    if "```" in evidence:
+        trimmed = evidence.split("```")[0].rstrip() + "\n_(code snippet omitted for length — see alerts/" + fm.alert_id + ".md)_"
+        msg = build(trimmed)
+        if len(msg) <= 4096:
+            return msg
 
-📊 Evidence:"""
-
-    if evidence_bullets:
-        for b in evidence_bullets:
-            msg += f"\n   • {b}"
-    else:
-        msg += "\n   • See full report"
-
-    msg += f"""
-
-✅ Suggested action:
-   {fix_line or 'See full report'}
-
-🎚 Confidence: {fm.confidence or 'N/A'}
-📄 Full report: alerts/{fm.alert_id}.md"""
-
-    return msg[:4096]
+    # Still too long — hard truncate, keeping the footer intact.
+    cutoff = 4096 - len(footer) - len("\n…(truncated)")
+    return msg[:cutoff].rstrip() + "\n…(truncated)" + footer

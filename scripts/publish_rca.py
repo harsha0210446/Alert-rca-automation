@@ -45,7 +45,7 @@ def publish_alert(alert_id: str) -> int:
     fm, body = parse_frontmatter(content)
 
     if not is_rca_complete(body):
-        print(f"Error: RCA not complete for {alert_id}. Run auto_rca first.", file=sys.stderr)
+        print(f"Error: RCA not complete for {alert_id}. Run /analyse-alert first.", file=sys.stderr)
         return 1
 
     config = load_config()
